@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase-browser";
 
 // ========== DEMO DATA ==========
 const kpiData = {
@@ -159,9 +161,16 @@ function NavItem({ icon, label, active, badge, onClick }: {
 }
 
 // ========== MAIN DASHBOARD ==========
+
 export default function DashboardPage() {
   const [activePage, setActivePage] = useState("overview");
+  const router = useRouter();
+  const supabase = createClient();
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
   const fmt = (n: number) => n >= 1000 ? `€${(n / 1000).toFixed(1)}k` : `€${n}`;
   const fmtFull = (n: number) => `€${n.toLocaleString("de-DE")}`;
 
@@ -201,12 +210,17 @@ export default function DashboardPage() {
           </div>
         </nav>
 
-        <div className="pt-4 border-t border-gray-200 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-semibold">DT</div>
-          <div className="text-xs leading-tight">
-            <div className="font-semibold text-gray-900">Demo Tech GmbH</div>
-            <div className="text-gray-400 text-[11px]">Free Scan Active</div>
+        <div className="pt-4 border-t border-gray-200">
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-semibold">ST</div>
+            <div className="text-xs leading-tight">
+              <div className="font-semibold text-gray-900">AI Ops Factory</div>
+              <div className="text-gray-400 text-[11px]">Free Plan</div>
+            </div>
           </div>
+          <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-xs text-gray-400 hover:text-red-500 hover:bg-gray-50 rounded-lg transition-all">
+            Abmelden
+          </button>
         </div>
       </aside>
 
