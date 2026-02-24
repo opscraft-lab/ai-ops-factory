@@ -344,7 +344,46 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-
+{/* Uploaded Documents */}
+{documents.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-all mb-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <div className="text-sm font-semibold">Hochgeladene Dokumente</div>
+                    <div className="text-xs text-gray-400 mt-0.5">{documents.length} Datei(en) hochgeladen</div>
+                  </div>
+                  <Link href="/upload" className="text-xs text-blue-600 hover:text-blue-700 font-medium">+ Weitere hochladen</Link>
+                </div>
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-left pb-3">Dateiname</th>
+                      <th className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-left pb-3">Typ</th>
+                      <th className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-left pb-3">Größe</th>
+                      <th className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-left pb-3">Status</th>
+                      <th className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-left pb-3">Hochgeladen</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {documents.map((doc) => (
+                      <tr key={doc.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                        <td className="py-3 text-sm font-medium text-gray-900">{doc.file_name}</td>
+                        <td className="py-3 text-xs text-gray-500">{doc.file_type || "—"}</td>
+                        <td className="py-3 text-xs text-gray-500 font-mono">{doc.file_size ? `${(doc.file_size / 1024).toFixed(0)} KB` : "—"}</td>
+                        <td className="py-3">
+                          <span className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full ${
+                            doc.status === "analyzed" ? "bg-green-50 text-green-600" : "bg-blue-50 text-blue-600"
+                          }`}>
+                            {doc.status === "analyzed" ? "Analysiert" : "Hochgeladen"}
+                          </span>
+                        </td>
+                        <td className="py-3 text-xs text-gray-400">{new Date(doc.created_at).toLocaleDateString("de-DE")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             {/* Quick Wins */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-all">
               <div className="flex items-center justify-between mb-5">
