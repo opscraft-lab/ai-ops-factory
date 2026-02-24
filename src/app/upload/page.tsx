@@ -1,11 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase-browser";
 
 export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+  const router = useRouter();
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUserId(user.id);
+    };
+    getUser();
+  }, []);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -20,13 +34,49 @@ export default function UploadPage() {
     }
   };
 
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleUpload = async () => {
+    if (!userId || files.length === 0) return;
     setUploading(true);
-    // TODO: Upload to Supabase Storage + trigger analysis
-    setTimeout(() => {
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setProgress(`Lade hoch: ${file.name} (${i + 1}/${files.length})`);
+
+        // Upload to Supabase Storage
+        const filePath = `${userId}/${Date.now()}_${file.name}`;
+        const { error: storageError } = await supabase.storage
+          .from("documents")
+          .upload(filePath, file);
+
+        if (storageError) throw storageError;
+
+        // Save metadata to documents table
+        const { error: dbError } = await supabase.from("documents").insert({
+          user_id: userId,
+          file_name: file.name,
+          file_type: file.type,
+          file_size: file.size,
+          storage_path: filePath,
+          status: "uploaded",
+        });
+
+        if (dbError) throw dbError;
+      }
+
+      setProgress("Alle Dateien erfolgreich hochgeladen!");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 2000);
+    } catch (error: any) {
+      setProgress(`Fehler: ${error.message}`);
+    } finally {
       setUploading(false);
-      alert("Upload erfolgreich! Analyse wird gestartet...");
-    }, 2000);
+    }
   };
 
   return (
@@ -81,21 +131,42 @@ export default function UploadPage() {
               {files.map((file, i) => (
                 <li
                   key={i}
-                  className="bg-slate-800 px-4 py-3 rounded-lg flex justify-between"
+                  className="bg-slate-800 px-4 py-3 rounded-lg flex justify-between items-center"
                 >
-                  <span>{file.name}</span>
-                  <span className="text-slate-400">
-                    {(file.size / 1024).toFixed(0)} KB
-                  </span>
+                  <div>
+                    <span>{file.name}</span>
+                    <span className="text-slate-400 ml-3 text-sm">
+                      {(file.size / 1024).toFixed(0)} KB
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => removeFile(i)}
+                    className="text-slate-500 hover:text-red-400 transition-colors"
+                  >
+                    ✕
+                  </button>
                 </li>
               ))}
             </ul>
+
+            {progress && (
+              <div className={`mt-4 p-3 rounded-lg text-sm ${
+                progress.includes("Fehler") 
+                  ? "bg-red-500/10 text-red-400" 
+                  : progress.includes("erfolgreich")
+                  ? "bg-green-500/10 text-green-400"
+                  : "bg-blue-500/10 text-blue-400"
+              }`}>
+                {progress}
+              </div>
+            )}
+
             <button
               onClick={handleUpload}
               disabled={uploading}
               className="mt-6 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-600 px-8 py-3 rounded-lg font-semibold transition-colors"
             >
-              {uploading ? "Wird hochgeladen..." : "Analyse starten"}
+              {uploading ? "Wird hochgeladen..." : "Hochladen & Analyse starten"}
             </button>
           </div>
         )}
