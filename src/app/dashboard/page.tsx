@@ -161,16 +161,28 @@ function NavItem({ icon, label, active, badge, onClick }: {
 }
 
 // ========== MAIN DASHBOARD ==========
-
 export default function DashboardPage() {
   const [activePage, setActivePage] = useState("overview");
+  const [documents, setDocuments] = useState<any[]>([]);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      const { data } = await supabase
+        .from("documents")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (data) setDocuments(data);
+    };
+    fetchDocuments();
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/login");
   };
+
   const fmt = (n: number) => n >= 1000 ? `€${(n / 1000).toFixed(1)}k` : `€${n}`;
   const fmtFull = (n: number) => `€${n.toLocaleString("de-DE")}`;
 
