@@ -14,7 +14,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#0a0e1a] text-white overflow-x-hidden" style={{ fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
-      <style jsx global>{`
+     <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap');
         @keyframes pulse-glow { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
         @keyframes fade-in-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
@@ -24,7 +24,7 @@ export default function Home() {
         .animate-d3 { animation: fade-in-up 0.8s ease 0.3s forwards; opacity: 0; }
         .animate-d4 { animation: fade-in-up 0.8s ease 0.4s forwards; opacity: 0; }
         .glow-pulse { animation: pulse-glow 3s ease-in-out infinite; }
-      `}</style>
+      `}} />
 
       {/* NAVBAR */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#0a0e1a]/90 backdrop-blur-xl border-b border-white/5 py-3" : "py-5"}`}>
